@@ -26,21 +26,17 @@ function Post({}: Props) {
   const [posts, setPosts] = useState<Posts[]>([]);
 
   const getPosts = async () => {
-    try {
-      // Intenta obtener los posts
-      const response = await axios.get("http://localhost:8080/posts", {
-        withCredentials: true,
-      });
-      setPosts(response.data);
-    } catch (error: any) {
-      // Si hay un error de autorización, redirige al login de OAuth
-      if (error.response?.status === 401 || error.response?.status === 302) {
-        window.location.href =
-          "http://localhost:8080/oauth2/authorization/google";
-      } else {
-        console.error("Error fetching posts:", error);
-      }
+    const response = await fetch("http://localhost:8080/posts", {
+      method: "GET",
+      redirect: "follow",
+      credentials: "include",
+    }).then((response) => response);
+    console.log(response.url);
+    if (response.redirected) {
+      document.location = response.url;
     }
+    const data = await response.json();
+    setPosts(data);
   };
 
   useEffect(() => {

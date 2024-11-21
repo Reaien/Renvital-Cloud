@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import profilePic from "../../assets/images/profile-pic.png";
 import profilePic2 from "../../assets/images/profile-pic2.jpg";
@@ -26,27 +27,19 @@ function Post({}: Props) {
 
   const getPosts = async () => {
     try {
-      const response = await fetch("http://localhost:8080/posts", {
-        method: "GET",
-        credentials: "include", // Importante para enviar cookies
-        headers: {
-          "Content-Type": "application/json",
-        },
+      // Intenta obtener los posts
+      const response = await axios.get("http://localhost:8080/posts", {
+        withCredentials: true,
       });
-
-      if (response.redirected) {
-        window.location.href = response.url;
-        return;
+      setPosts(response.data);
+    } catch (error: any) {
+      // Si hay un error de autorización, redirige al login de OAuth
+      if (error.response?.status === 401 || error.response?.status === 302) {
+        window.location.href =
+          "http://localhost:8080/oauth2/authorization/google";
+      } else {
+        console.error("Error fetching posts:", error);
       }
-
-      if (!response.ok) {
-        throw new Error("Error en la respuesta del servidor");
-      }
-
-      const data = await response.json();
-      setPosts(data);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
     }
   };
 

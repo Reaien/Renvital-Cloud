@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import profilePic from "../../assets/images/profile-pic.png";
 import profilePic2 from "../../assets/images/profile-pic2.jpg";

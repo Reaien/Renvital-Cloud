@@ -25,17 +25,29 @@ function Post({}: Props) {
   const [posts, setPosts] = useState<Posts[]>([]);
 
   const getPosts = async () => {
-    const response = await fetch("http://localhost:8080/posts", {
-      method: "GET",
-      redirect: "follow",
-      credentials: "include",
-    }).then((response) => response);
-    console.log(response.url);
-    if (response.redirected) {
-      document.location = response.url;
+    try {
+      const response = await fetch("http://localhost:8080/posts", {
+        method: "GET",
+        credentials: "include", // Importante para enviar cookies
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.redirected) {
+        window.location.href = response.url;
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Error en la respuesta del servidor");
+      }
+
+      const data = await response.json();
+      setPosts(data);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
     }
-    const data = await response.json();
-    setPosts(data);
   };
 
   useEffect(() => {

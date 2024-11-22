@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import profilePic from "../../assets/images/profile-pic.png";
 import profilePic2 from "../../assets/images/profile-pic2.jpg";
+import axios from "axios";
 
 type Respuesta = {
   id: number;
@@ -24,18 +25,31 @@ type Props = {};
 function Post({}: Props) {
   const [posts, setPosts] = useState<Posts[]>([]);
 
+  const axiosInstance = axios.create({
+    baseURL: "http://localhost:8080",
+    withCredentials: true,
+  });
+
   const getPosts = async () => {
-    const response = await fetch("http://localhost:8080/posts", {
-      method: "GET",
-      redirect: "follow",
-      credentials: "include",
-    }).then((response) => response);
-    console.log(response.url);
-    if (response.redirected) {
-      document.location = response.url;
+    try {
+      // Primero, intenta obtener el estado de autenticación
+      const authResponse = await axiosInstance.get("/auth/status");
+
+      if (authResponse.data.authenticated) {
+        // Si está autenticado, obtén los posts
+        const postsResponse = await axiosInstance.get("/posts");
+        setPosts(postsResponse.data);
+      } else {
+        // Si no está autenticado, redirige al login de OAuth
+        window.location.href =
+          "http://localhost:8080/oauth2/authorization/google";
+      }
+    } catch (error: any) {
+      console.error("Error:", error);
+      // Redirigir a OAuth si hay cualquier error de autenticación
+      window.location.href =
+        "http://localhost:8080/oauth2/authorization/google";
     }
-    const data = await response.json();
-    setPosts(data);
   };
 
   useEffect(() => {
